@@ -55,5 +55,12 @@ namespace Logic.Server
 
             return true;
         }
+
+        #region Period methods
+        public void CreateDailyStatistics()
+        {
+
+        }
+        #endregion
     }
 }
