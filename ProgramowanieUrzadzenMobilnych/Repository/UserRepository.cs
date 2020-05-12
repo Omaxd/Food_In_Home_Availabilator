@@ -6,21 +6,12 @@ using System.Text;
 
 namespace Repository
 {
-    public class UserRepository : Repository
+    public class UserRepository : Repository<User>
     {
-        /// <summary>
-        /// Getting user from database by id
-        /// </summary>
-        /// <param name="userId"></param>
-        /// <returns></returns>
-        public User GetUserById(int userId)
+        public User GetById(int userId)
         {
-            User user = database.Users
-                .Where(u => u.Id == userId)
-                .Where(u => !u.IsDeleted)
-                .FirstOrDefault();
-
-            return user;
+            return GetById(userId, database.Users);
         }
+
     }
 }

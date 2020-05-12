@@ -1,12 +1,15 @@
-﻿using System;
+﻿using Model.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Model
 {
-    public class Product
+    public class Product : IRecord
     {
         public int Id { get; set; }
+
+        public bool IsDeleted { get; set; }
 
         public int Name { get; set; }
 

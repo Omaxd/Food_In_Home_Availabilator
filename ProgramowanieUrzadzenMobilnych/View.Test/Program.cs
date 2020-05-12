@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Logic.Server;
+using System;
 
 namespace View.Test
 {
@@ -6,8 +7,11 @@ namespace View.Test
     {
         static void Main(string[] args)
         {
-            Logic.Server.Connector connector = new Logic.Server.Connector();
-            connector.Send("test");
+            Connector connector = new Connector();
+            connector.Connect();
+
+            //connector.Send("test");
+            Console.ReadLine();
         }
     }
 }

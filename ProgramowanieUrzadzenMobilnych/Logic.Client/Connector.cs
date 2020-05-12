@@ -7,32 +7,119 @@ using System.Text;
 
 namespace Logic.Client
 {
+    /// <summary>
+    /// Using project from:
+    /// https://github.com/AbleOpus/NetworkingSamples/blob/master/MultiServer
+    /// </summary>
     public class Connector
     {
-        public void StartConnection()
+        private const int _port = 100;
+
+        private Socket _clientSocket;
+
+        /*
+        static void Main()
         {
-            string ipServerAddress = "127.0.0.1";
-            int portNumber = 80;
-            TcpListener tcpListener = new TcpListener(IPAddress.Parse(ipServerAddress), portNumber);
-            tcpListener.Start();
+            Console.Title = "Client";
+            ConnectToServer();
+            RequestLoop();
+            Exit();
+        }*/
 
-            Console.WriteLine("Server has started on 127.0.0.1:80.{0}Waiting for a connection...", Environment.NewLine);
+        public void Connect()
+        {
+            _clientSocket = new Socket (AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-            TcpClient client = tcpListener.AcceptTcpClient();
+            int attempts = 0;
 
-            Console.WriteLine("A client connected.");
+            while (!_clientSocket.Connected)
+            {
+                try
+                {
+                    attempts++;
+                    Console.WriteLine("Connection attempt " + attempts);
+                    // Change IPAddress.Loopback to a remote IP to connect to a remote host.
+                    _clientSocket.Connect(IPAddress.Loopback, _port);
+                }
+                catch (SocketException)
+                {
+                    //Console.Clear();
+                }
+            }
 
-            NetworkStream stream = client.GetStream();
+            //Console.WriteLine("Connected");
+        }
 
-            //enter to an infinite cycle to be able to handle every change in stream
+        private void RequestLoop()
+        {
+            Console.WriteLine(@"<Type ""exit"" to properly disconnect client>");
+
             while (true)
             {
-                while (!stream.DataAvailable) ;
-
-                Byte[] bytes = new Byte[client.Available];
-
-                stream.Read(bytes, 0, bytes.Length);
+                SendRequest();
+                ReceiveResponse();
             }
+        }
+
+        /// <summary>
+        /// Close socket and exit program.
+        /// </summary>
+        private void Disconect()
+        {
+            Send("exit"); // Tell the server we are exiting
+            _clientSocket.Shutdown(SocketShutdown.Both);
+            _clientSocket.Close();
+            Environment.Exit(0);
+        }
+
+        private void SendRequest()
+        {
+            Console.Write("Send a request: ");
+            string request = Console.ReadLine();
+            Send(request);
+
+            if (request.ToLower() == "exit")
+            {
+                Disconect();
+            }            
+        }
+
+        /// <summary>
+        /// Sends a string to the server with ASCII encoding.
+        /// </summary>
+        public void Send(string text)
+        {
+            byte[] buffer = Encoding.ASCII.GetBytes(text);
+            _clientSocket.Send(buffer, 0, buffer.Length, SocketFlags.None);
+        }
+
+        public object ReturnResponse()
+        {
+            var buffer = new byte[2048];
+            int received = _clientSocket.Receive(buffer, SocketFlags.None);
+
+            if (received == 0)
+                return "";
+
+            byte[] data = new byte[received];
+            Array.Copy(buffer, data, received);
+            string text = Encoding.ASCII.GetString(data);
+
+            return text;
+        }
+
+        public void ReceiveResponse()
+        {
+            var buffer = new byte[2048];
+            int received = _clientSocket.Receive(buffer, SocketFlags.None);
+
+            if (received == 0)
+                return;
+
+            byte[] data = new byte[received];
+            Array.Copy(buffer, data, received);
+            string text = Encoding.ASCII.GetString(data);
+            Console.WriteLine(text);
         }
     }
 }
