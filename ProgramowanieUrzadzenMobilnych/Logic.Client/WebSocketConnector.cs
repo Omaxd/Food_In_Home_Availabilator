@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Common.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
@@ -11,7 +12,7 @@ namespace Logic.Client
     /// Using project from:
     /// https://github.com/AbleOpus/NetworkingSamples/blob/master/MultiServer
     /// </summary>
-    public class Connector
+    public class WebSocketConnector : IConnector
     {
         private const int _port = 100;
 

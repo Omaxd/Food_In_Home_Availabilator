@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Logic.Server\Logic.Server.csproj" />
+    <ProjectReference Include="..\Connector.Server\Connector.Server.csproj" />
   </ItemGroup>
 
 </Project>

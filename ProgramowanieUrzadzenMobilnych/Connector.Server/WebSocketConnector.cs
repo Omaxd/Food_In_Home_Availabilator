@@ -1,19 +1,23 @@
-﻿using Model;
+﻿using Common.Classes;
+using Common.Constants;
+using Common.Interfaces;
+using Controller.Server;
+using Model;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
-namespace Logic.Server
+namespace Connector.Server
 {
     /// <summary>
     /// Using project from: 
     /// https://github.com/AbleOpus/NetworkingSamples/blob/master/MultiClient
     /// </summary>
-    public class Connector
+    public class WebSocketConnector : IConnector
     {
         private const int BUFFER_SIZE = 2048;
         private const int DEFAULT_PORT = 100;
@@ -23,20 +27,26 @@ namespace Logic.Server
         private int _port;
         private readonly byte[] _buffer;
 
-        public Connector()
+        private readonly ServerController _controller;
+
+        public WebSocketConnector()
         {
             _serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             _clients = new List<Client>();
             _buffer = new byte[BUFFER_SIZE];
             _port = DEFAULT_PORT;
+
+            _controller = new ServerController(this);
         }
 
-        public Connector(int port)
+        public WebSocketConnector(int port)
         {
             _serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             _clients = new List<Client>();
             _buffer = new byte[BUFFER_SIZE];
             _port = port;
+
+            _controller = new ServerController(this);
         }
 
         void Main()
@@ -95,20 +105,20 @@ namespace Logic.Server
 
         private void ReceiveCallback(IAsyncResult asyncResult)
         {
-            Socket current = (Socket)asyncResult.AsyncState;
+            Socket currentSocket = (Socket)asyncResult.AsyncState;
             int received;
 
             try
             {
-                received = current.EndReceive(asyncResult);
+                received = currentSocket.EndReceive(asyncResult);
             }
             catch (SocketException)
             {
                 Console.WriteLine("Client forcefully disconnected");
                 // Don't shutdown because the socket may be disposed and its disconnected anyway.
-                current.Close();
+                currentSocket.Close();
 
-                Client removedClient = _clients.FirstOrDefault(c => c.Socket == current);
+                Client removedClient = _clients.FirstOrDefault(c => c.Socket == currentSocket);
                 _clients.Remove(removedClient);
 
                 return;
@@ -119,42 +129,64 @@ namespace Logic.Server
             string text = Encoding.ASCII.GetString(recBuf);
             Console.WriteLine("Received Text: " + text);
 
-            if (text.ToLower() == "get time") // Client requested time
+            try
             {
-                Console.WriteLine("Text is a get time request");
-                byte[] data = Encoding.ASCII.GetBytes(DateTime.Now.ToLongTimeString());
-                current.Send(data);
-                Console.WriteLine("Time sent to client");
-            }
-            if (text.ToLower() == "login") // Client requested time
-            {
-                Console.WriteLine("Text is a get time request");
-                byte[] data = Encoding.ASCII.GetBytes("true");
-                current.Send(data);
-                Console.WriteLine("Time sent to client");
-            }
-            else if (text.ToLower() == "exit") // Client wants to exit gracefully
-            {
-                // Always Shutdown before closing
-                current.Shutdown(SocketShutdown.Both);
-                current.Close();
+                SocketMessage socketMessage = JsonConvert.DeserializeObject<SocketMessage>(text);
 
-                Client removedClient = _clients.FirstOrDefault(c => c.Socket == current);
-                _clients.Remove(removedClient);
+                string message;
 
-                Console.WriteLine("Client disconnected");
+                if (socketMessage.Address.Contains(ServiceAddress.Server))
+                {
+                    message = MakeServerCommand(socketMessage, currentSocket);
 
-                return;
+                    if (message == null)
+                        return;
+                }
+                else
+                {
+                    message = _controller.GetRepositoryResponse(socketMessage);
+                }
+                
+                byte[] responseData = Encoding.ASCII.GetBytes(message);
+                currentSocket.Send(responseData);
             }
-            else
+            catch (Exception)
             {
                 Console.WriteLine("Text is an invalid request");
                 byte[] data = Encoding.ASCII.GetBytes("Invalid request");
-                current.Send(data);
+                currentSocket.Send(data);
                 Console.WriteLine("Warning Sent");
             }
 
-            current.BeginReceive(_buffer, 0, BUFFER_SIZE, SocketFlags.None, ReceiveCallback, current);
+            currentSocket.BeginReceive(_buffer, 0, BUFFER_SIZE, SocketFlags.None, ReceiveCallback, currentSocket);
+        }
+
+        private string MakeServerCommand(SocketMessage socketMessage, Socket socket)
+        {
+            string message = default;
+
+            if (socketMessage.Address.Contains(ServerCommands.Exit))
+            {
+                DisconnectClient(socket);
+
+                return null;
+            }
+
+            message = _controller.GetServerResponse(socketMessage);
+
+            return message;
+        }
+
+        private void DisconnectClient(Socket socket)
+        {
+            socket.Shutdown(SocketShutdown.Both);
+            socket.Close();
+
+            Client removedClient = _clients.FirstOrDefault(c => c.Socket == socket);
+            int removedClientId = removedClient.User.Id;
+            _clients.Remove(removedClient);
+
+            Console.WriteLine($"Client with id='{removedClientId}' has been disconnected");
         }
     }
 }

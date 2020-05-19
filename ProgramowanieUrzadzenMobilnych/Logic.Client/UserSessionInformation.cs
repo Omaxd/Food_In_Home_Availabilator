@@ -5,7 +5,8 @@ namespace Logic.Client
 {
     public class UserSessionInformation
     {
-        public int LoggedUserId { get; private set; }
-        public UserRole UserRole { get; private set; }
+        public static int LoggedUserId { get; set; }
+        public static string UserName { get; set; }
+        public static UserRole UserRole { get; set; }
     }
 }

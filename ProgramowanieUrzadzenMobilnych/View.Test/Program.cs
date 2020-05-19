@@ -1,4 +1,4 @@
-﻿using Logic.Server;
+﻿using Connector.Server;
 using System;
 
 namespace View.Test
@@ -7,7 +7,7 @@ namespace View.Test
     {
         static void Main(string[] args)
         {
-            Connector connector = new Connector();
+            WebSocketConnector connector = new WebSocketConnector();
             connector.Connect();
 
             //connector.Send("test");

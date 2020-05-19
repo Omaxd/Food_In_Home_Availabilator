@@ -19,7 +19,8 @@ namespace Repository
 
             User firstUser = new User()
             {
-                Name = "admin",
+                Login = "admin",
+                Name = "Szymon",
                 Password = "1234"
             };
 

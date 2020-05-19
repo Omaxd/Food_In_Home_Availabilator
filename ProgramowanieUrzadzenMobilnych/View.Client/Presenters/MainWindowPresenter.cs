@@ -8,8 +8,7 @@ namespace View.Client.Presenters
 {
     internal class MainWindowPresenter
     {
-        public Connector Connector { get; private set; }
-        public User LoggedUser { get; set; }
+        public WebSocketConnector Connector { get; private set; }
 
         public MainWindowPresenter()
         {
@@ -18,7 +17,7 @@ namespace View.Client.Presenters
 
         private void ConnectToServer()
         {
-            Connector = new Connector();
+            Connector = new WebSocketConnector();
             Connector.Connect();
         }
     }

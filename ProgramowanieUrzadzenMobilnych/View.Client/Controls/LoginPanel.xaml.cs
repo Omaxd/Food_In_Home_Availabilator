@@ -11,6 +11,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using View.Client.Constants;
 using View.Client.Presenters;
 
 namespace View.Client.Controls
@@ -25,7 +26,7 @@ namespace View.Client.Controls
         private string _login => tbLogin.Text;
         private string _password => pbPassword.Password;
 
-        public LoginPanel(Connector connector)
+        public LoginPanel(WebSocketConnector connector)
         {
             InitializeComponent();
             _presenter = new LoginPanelPresenter(connector);
@@ -33,15 +34,15 @@ namespace View.Client.Controls
 
         private void btnLogin_Click(object sender, RoutedEventArgs e)
         {
-            bool result = _presenter.Login(_login, _password);
+            UserStatus result = _presenter.Login(_login, _password);
 
-            if (result)
-            {
-                this.Visibility = Visibility.Hidden;
-            }
-            else
+            if (result == UserStatus.NotExist)
             {
                 MessageBox.Show("Nieprawidłowy login i/lub hasło.");
+            }
+            else if (result == UserStatus.IsLogged)
+            {
+                MessageBox.Show("Użytkownik jest już zalogowany.");
             }
         }
 

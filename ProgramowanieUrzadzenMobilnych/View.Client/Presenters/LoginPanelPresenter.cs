@@ -1,27 +1,41 @@
 ﻿using Logic.Client;
+using Model;
+using Service.Client;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
+using View.Client.Constants;
 
 namespace View.Client.Presenters
 {
     internal class LoginPanelPresenter
     {
-        private readonly Connector _connector;
-        public LoginPanelPresenter(Connector connector)
+        private readonly WebSocketConnector _connector;
+        private readonly UserService _userService;
+
+        public LoginPanelPresenter(WebSocketConnector connector)
         {
             _connector = connector;
+            _userService = new UserService(_connector);
         }
 
-        public bool Login(string login, string password)
+        public UserStatus Login(string login, string password)
         {
-            _connector.Send("login");
-            string response = (string)_connector.ReturnResponse();
+            User user = _userService.GetByLoginAndPassword(login, password);
 
-            if (response == "true")
-                return true;
+            if (user == null)
+                return UserStatus.NotExist;
 
-            return false;
+            bool isLogged = _userService.CheckIfUserIsLogged(user.Id);
+
+            if (isLogged)
+                return UserStatus.IsLogged;
+
+            UserSessionInformation.LoggedUserId = user.Id;
+            UserSessionInformation.UserName = user.Name;
+
+            return UserStatus.Valid;
         }
 
         public bool Register()

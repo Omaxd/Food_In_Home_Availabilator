@@ -10,6 +10,11 @@ namespace Repository
     {
         protected Database database;
 
+        public Repository(Database database)
+        {
+            this.database = database;
+        }
+
         public T GetById(int id, IList<T> source)
         {
             T record = source

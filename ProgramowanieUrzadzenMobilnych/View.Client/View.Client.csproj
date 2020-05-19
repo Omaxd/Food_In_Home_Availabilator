@@ -9,6 +9,19 @@
   <ItemGroup>
     <ProjectReference Include="..\Logic.Client\Logic.Client.csproj" />
     <ProjectReference Include="..\Model\Model.csproj" />
+    <ProjectReference Include="..\Service.Client\Service.Client.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Controls\RegisterPanel.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Update="Controls\RegisterPanel.xaml">
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
 
 </Project>

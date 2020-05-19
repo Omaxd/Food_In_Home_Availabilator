@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Common.Classes;
+using Common.Constants;
+using Newtonsoft.Json;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -6,42 +9,63 @@ namespace Logic.Server
 {
     public class UserManager
     {
-        private IList<int> _activeUsers;
+        private IList<int> _loggedUsers;
 
         public UserManager()
         {
-            _activeUsers = new List<int>();
+            _loggedUsers = new List<int>();
         }
 
-        public bool AddActiveUser(int userId)
+        public bool RemoveLoggedUser(int userId)
         {
             // Check if user is active
-            if (_activeUsers.Contains(userId))
+            if (!_loggedUsers.Contains(userId))
                 return false;
 
-            if (!CheckIfUserExistInDatabase(userId))
-                return false;
-
-            _activeUsers.Add(userId);
+            _loggedUsers.Remove(userId);
 
             return true;
         }
 
-        public bool RemoveActiveUser(int userId)
+        public bool CheckIfUserIsLogged(int userId)
         {
-            // Check if user is active
-            if (!_activeUsers.Contains(userId))
-                return false;
+            if (_loggedUsers.Contains(userId))
+                return true;
 
-            _activeUsers.Remove(userId);
+            AddLoggedUser(userId);
 
-            return true;
-        }
-
-        private bool CheckIfUserExistInDatabase(int userId)
-        {
-            // TODO: Add connection with repository
             return false;
+        }
+
+        public bool AddLoggedUser(int userId)
+        {
+            _loggedUsers.Add(userId);
+
+            return true;
+        }
+
+        public string GetResponse(SocketMessage socketMessage)
+        {
+            IDictionary<string, string> content = socketMessage.GetContentPairs();
+
+            switch (socketMessage.Method)
+            {
+                case RequestMethods.Get:
+                    {
+                        if (socketMessage.Address.Contains(ServiceMethod.CheckIfUserIsLogged))
+                        {
+                            string userIdString = content["userId"];
+                            int userId = int.Parse(userIdString);
+                            bool isLogged = CheckIfUserIsLogged(userId);
+                            string response = JsonConvert.SerializeObject(isLogged);
+
+                            return response;
+                        }
+                    }
+                    break;
+            }
+
+            throw new Exception();
         }
     }
 }
