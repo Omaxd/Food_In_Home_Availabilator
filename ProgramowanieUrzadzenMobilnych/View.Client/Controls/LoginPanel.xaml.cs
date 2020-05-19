@@ -34,6 +34,9 @@ namespace View.Client.Controls
 
         private void btnLogin_Click(object sender, RoutedEventArgs e)
         {
+            if (!ValidFields())
+                return;
+
             UserStatus result = _presenter.Login(_login, _password);
 
             if (result == UserStatus.NotExist)
@@ -44,11 +47,32 @@ namespace View.Client.Controls
             {
                 MessageBox.Show("Użytkownik jest już zalogowany.");
             }
+            else
+            {
+                MessageBox.Show($"Witaj {UserSessionInformation.UserName}");
+            }
         }
 
         private void btnRegister_Click(object sender, RoutedEventArgs e)
         {
             _presenter.Register();
+        }
+
+        private bool ValidFields()
+        {
+            IList<string> fields = new List<string>()
+            {
+                _login,
+                _password
+            };
+
+            if (!_presenter.ValidFields(fields))
+            {
+                MessageBox.Show("Nie wszystkie pola są uzupełnione.");
+                return false;
+            }
+
+            return true;
         }
     }
 }

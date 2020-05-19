@@ -8,5 +8,6 @@ namespace Logic.Client
         public static int LoggedUserId { get; set; }
         public static string UserName { get; set; }
         public static UserRole UserRole { get; set; }
+        public static string ApplicationVersion { get; set; }
     }
 }

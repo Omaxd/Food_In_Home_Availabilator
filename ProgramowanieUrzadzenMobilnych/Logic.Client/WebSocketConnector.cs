@@ -15,6 +15,7 @@ namespace Logic.Client
     public class WebSocketConnector : IConnector
     {
         private const int _port = 100;
+        private const int _maxAttempts = 10;
 
         private Socket _clientSocket;
 
@@ -37,6 +38,9 @@ namespace Logic.Client
             {
                 try
                 {
+                    if (attempts == _maxAttempts)
+                        throw new SocketException();
+
                     attempts++;
                     Console.WriteLine("Connection attempt " + attempts);
                     // Change IPAddress.Loopback to a remote IP to connect to a remote host.
@@ -44,7 +48,7 @@ namespace Logic.Client
                 }
                 catch (SocketException)
                 {
-                    //Console.Clear();
+                    Environment.Exit(0);
                 }
             }
 

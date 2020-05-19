@@ -45,12 +45,14 @@ namespace View.Client.Controls
 
             if (_presenter.ValidFields(fields))
             {
+                MessageBox.Show("Nie wszystkie pola zostały uzupełnione.");
 
                 return;
             }
 
             if (_presenter.ValidPassword(_password, _repeatPassword))
             {
+                MessageBox.Show("Wprowadzone hasła są różne.");
 
                 return;
             }

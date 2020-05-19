@@ -15,6 +15,11 @@ namespace View.Client.Presenters
             ConnectToServer();
         }
 
+        public void SetView()
+        {
+
+        }
+
         private void ConnectToServer()
         {
             Connector = new WebSocketConnector();

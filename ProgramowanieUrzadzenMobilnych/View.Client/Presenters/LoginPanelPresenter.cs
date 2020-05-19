@@ -38,6 +38,17 @@ namespace View.Client.Presenters
             return UserStatus.Valid;
         }
 
+        public bool ValidFields(IList<string> fields)
+        {
+            foreach (string field in fields)
+            {
+                if (string.IsNullOrEmpty(field) || string.IsNullOrWhiteSpace(field) || field?.Length <= 0)
+                    return false;
+            }
+
+            return true;
+        }
+
         public bool Register()
         {
             return false;
